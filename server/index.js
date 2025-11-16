@@ -7,7 +7,15 @@ const app = express();
 const socket = require("socket.io");
 require("dotenv").config();
 
-app.use(cors());
+// --- 1. THIS IS THE FIRST FIX ---
+// Old code: app.use(cors());
+// New code uses the CLIENT_URL variable
+app.use(cors({
+  origin: process.env.CLIENT_URL,
+  credentials: true
+}));
+// ------------------------------
+
 app.use(express.json());
 
 mongoose
@@ -32,12 +40,17 @@ app.use("/api/messages", messageRoutes);
 const server = app.listen(process.env.PORT, () =>
   console.log(`Server started on ${process.env.PORT}`)
 );
+
+// --- 2. THIS IS THE SECOND FIX ---
+// Old code had: origin: "http://localhost:3000"
+// New code uses the CLIENT_URL variable
 const io = socket(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: process.env.CLIENT_URL,
     credentials: true,
   },
 });
+// ------------------------------
 
 global.onlineUsers = new Map();
 io.on("connection", (socket) => {
